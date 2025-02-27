@@ -1,0 +1,103 @@
+openapi: 3.0.0
+info:
+  title: Auth Service API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost/api/v1
+
+paths:
+  /auth/login:
+    post:
+      summary: Login user
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Username or password incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseBase'
+
+  /auth/register:
+    post:
+      summary: Register user
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Customer already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseBase'
+
+  /auth/validate-token:
+    get:
+      operationId: validateToken
+      responses:
+        '200':
+          description: User registered successfully
+
+components:
+  schemas:
+    ResponseBase:
+      type: object
+      properties:
+        message:
+          type: string
+
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
