@@ -27,10 +27,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JwtService {
 
-    @Value("${jwt.secret}")
+    @Value("${application.config.jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${application.config.jwt.expiration}")
     private long expiration;
 
     private static final String AUTHORITIES_KEY = "auth";
