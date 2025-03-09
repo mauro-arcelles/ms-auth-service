@@ -62,12 +62,13 @@ public class AuthServiceImpl implements AuthService {
                 userRepository.existsByUsername(req.getUsername())
                     .flatMap(exists -> {
                         if (exists) {
-                            throw new BadRequestException("Username already exists");
+                            return Mono.error(new BadRequestException("Username already exists"));
                         }
                         return Mono.just(req);
                     }))
             .flatMap(req ->
                 roleRepository.findByName(RoleEnum.ROLE_USER.toString())
+                    .switchIfEmpty(Mono.error(new BadRequestException("Role not found. Check if roles are correctly created in db")))
                     .map(role -> {
                         User user = authMapper.getRegisterUserEntity(req);
                         user.setPassword(passwordEncoder.encode(req.getPassword()));
