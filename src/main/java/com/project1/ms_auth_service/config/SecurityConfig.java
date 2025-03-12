@@ -1,11 +1,9 @@
 package com.project1.ms_auth_service.config;
 
-import com.project1.ms_auth_service.config.auth.ReactiveUserDetailsServiceImpl;
 import com.project1.ms_auth_service.config.auth.TokenAuthenticationConverter;
 import com.project1.ms_auth_service.config.auth.UnauthorizedAuthenticationEntryPoint;
 import com.project1.ms_auth_service.config.auth.jwt.JWTHeadersExchangeMatcher;
 import com.project1.ms_auth_service.config.auth.jwt.JWTReactiveAuthenticationManager;
-import com.project1.ms_auth_service.config.auth.jwt.JwtService;
 import com.project1.ms_auth_service.model.entity.RoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.security.reactive.EndpointRequest;
@@ -22,12 +20,6 @@ import org.springframework.security.web.server.context.WebSessionServerSecurityC
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
-    @Autowired
-    private ReactiveUserDetailsServiceImpl reactiveUserDetailsService;
-
-    @Autowired
-    private JwtService jwtService;
-
     @Autowired
     private TokenAuthenticationConverter tokenAuthenticationConverter;
 

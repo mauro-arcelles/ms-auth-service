@@ -1,5 +1,6 @@
 package com.project1.ms_auth_service.config.auth;
 
+import com.project1.ms_auth_service.model.entity.CustomUserDetails;
 import com.project1.ms_auth_service.model.entity.User;
 import com.project1.ms_auth_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,11 @@ public class ReactiveUserDetailsServiceImpl implements ReactiveUserDetailsServic
         List<GrantedAuthority> grantedAuthorities = user.getAuthorities().stream()
             .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
             .collect(Collectors.toList());
-        return new org.springframework.security.core.userdetails.User(user.getUsername(),
+        return new CustomUserDetails(
+            user.getUsername(),
             user.getPassword(),
-            grantedAuthorities);
+            grantedAuthorities,
+            user.getId()
+        );
     }
 }

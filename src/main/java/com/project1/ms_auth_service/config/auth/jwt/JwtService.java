@@ -1,7 +1,7 @@
 package com.project1.ms_auth_service.config.auth.jwt;
 
+import com.project1.ms_auth_service.model.entity.CustomUserDetails;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
@@ -13,14 +13,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,7 +32,7 @@ public class JwtService {
     @Value("${application.config.jwt.expiration}")
     private long expiration;
 
-    private static final String AUTHORITIES_KEY = "auth";
+    private static final String AUTHORITIES_KEY = "roles";
 
     public String generateToken(Authentication authentication) {
         String authorities = authentication.getAuthorities().stream()
@@ -42,17 +41,20 @@ public class JwtService {
 
         Date validity = new Date(System.currentTimeMillis() + expiration * 60 * 1000);
 
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+
         return Jwts.builder()
             .setSubject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
-            .signWith(getKey(secret))
+            .claim("id", user.getId())
+            .signWith(getKey(), SignatureAlgorithm.HS256)
             .setExpiration(validity)
             .compact();
     }
 
     public String extractUsername(String token) {
         return Jwts.parserBuilder()
-            .setSigningKey(getKey(secret))
+            .setSigningKey(getKey())
             .build()
             .parseClaimsJws(token)
             .getBody().getSubject();
@@ -63,7 +65,7 @@ public class JwtService {
             throw new BadCredentialsException("Invalid token");
         }
         Claims claims = Jwts.parserBuilder()
-            .setSigningKey(getSignKey())
+            .setSigningKey(getKey())
             .build()
             .parseClaimsJws(token)
             .getBody();
@@ -73,7 +75,13 @@ public class JwtService {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        User principal = new User(claims.getSubject(), "", authorities);
+        String userId = claims.get("userId", String.class);
+        CustomUserDetails principal = new CustomUserDetails(
+            claims.getSubject(),
+            "",
+            authorities,
+            userId
+        );
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
@@ -81,43 +89,31 @@ public class JwtService {
     public boolean validateToken(String authToken) {
         try {
             Jwts.parserBuilder()
-                .setSigningKey(getSignKey())
+                .setSigningKey(getKey())
                 .build()
                 .parseClaimsJws(authToken);
             return true;
         } catch (SignatureException e) {
             log.info("Invalid JWT signature.");
-            log.trace("Invalid JWT signature trace: {}", e);
+            log.trace("Invalid JWT signature trace", e);
         } catch (MalformedJwtException e) {
             log.info("Invalid JWT token.");
-            log.trace("Invalid JWT token trace: {}", e);
+            log.trace("Invalid JWT token trace", e);
         } catch (ExpiredJwtException e) {
             log.info("Expired JWT token.");
-            log.trace("Expired JWT token trace: {}", e);
+            log.trace("Expired JWT token trace", e);
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT token.");
-            log.trace("Unsupported JWT token trace: {}", e);
+            log.trace("Unsupported JWT token trace", e);
         } catch (IllegalArgumentException e) {
             log.info("JWT token compact of handler are invalid.");
-            log.trace("JWT token compact of handler are invalid trace: {}", e);
+            log.trace("JWT token compact of handler are invalid trace", e);
         }
         return false;
     }
 
-    private List<String> getRoles(UserDetails userDetails) {
-        return userDetails.getAuthorities()
-            .stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toList());
-    }
-
-    private Key getKey(String secret) {
-        byte[] secretBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(secretBytes);
-    }
-
-    private Key getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
+    private Key getKey() {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
