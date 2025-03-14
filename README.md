@@ -57,3 +57,4 @@ application:
 ## Swagger
 http://localhost:8091/swagger-ui.html
 
+![ms-auth-service-2025-03-14-154517](https://github.com/user-attachments/assets/48907641-494d-45d9-abef-e29791e3d2ad)
