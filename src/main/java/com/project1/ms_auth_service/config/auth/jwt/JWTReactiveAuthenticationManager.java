@@ -54,6 +54,6 @@ public class JWTReactiveAuthenticationManager implements ReactiveAuthenticationM
             return this.userDetailsService.findByUsername(username);
         }
 
-        return null;
+        return Mono.empty();
     }
 }

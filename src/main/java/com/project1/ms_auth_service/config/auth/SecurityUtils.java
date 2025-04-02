@@ -17,12 +17,4 @@ public class SecurityUtils {
             .getFirst(HttpHeaders.AUTHORIZATION);
         return StringUtils.isEmpty(token) ? Strings.EMPTY : token;
     }
-
-    public static Mono<String> getUserFromRequest(ServerWebExchange serverWebExchange) {
-        return serverWebExchange.getPrincipal()
-            .cast(UsernamePasswordAuthenticationToken.class)
-            .map(UsernamePasswordAuthenticationToken::getPrincipal)
-            .cast(User.class)
-            .map(User::getUsername);
-    }
 }
